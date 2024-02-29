@@ -5,6 +5,8 @@ import {
   handleResize,
   initializeFabric,
 } from './lib/canvas';
+import LeftSidebar from './components/leftsidebar';
+import RightSidebar from './components/rightsidebar';
 
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -31,9 +33,15 @@ function App() {
     });
   }, []);
   return (
-    <div id="canvas" className="h-[100vh] w-full flex justify-center">
-      <canvas ref={canvasRef}></canvas>
-    </div>
+    <main className="h-screen overflow-hidden">
+      <section className="flex h-full flex-row p-2">
+        <LeftSidebar />
+        <div id="canvas" className="h-[100vh] w-full flex justify-center">
+          <canvas ref={canvasRef}></canvas>
+        </div>
+        <RightSidebar />
+      </section>
+    </main>
   );
 }
 
