@@ -58,11 +58,31 @@ export type Attributes = {
   stroke: string;
 };
 
-export type ActiveElement = {
+const BUTTON_VALUES = [
+  'rectangle',
+  'circle',
+  'triangle',
+  'line',
+  'freeform',
+  'select',
+  'delete',
+  'text',
+  'reset',
+] as const;
+
+export type ButtonValue = (typeof BUTTON_VALUES)[number] | null;
+
+export type MenuButton = {
+  name: string;
+  value: ButtonValue | null;
+  icon: React.ReactNode;
+};
+
+/* export type ActiveElement = {
   name: string;
   value: string;
   icon: string;
-} | null;
+} | null; */
 
 export interface CustomFabricObject extends fabric.Object {
   objectId?: string;
@@ -96,25 +116,6 @@ export type RightSidebarProps = {
   activeObjectRef: React.RefObject<fabric.Object | null>;
   isEditingRef: React.MutableRefObject<boolean>;
   syncShapeInStorage: (obj: any) => void;
-};
-
-export type NavbarProps = {
-  activeElement: ActiveElement;
-  imageInputRef: React.MutableRefObject<HTMLInputElement | null>;
-  handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleActiveElement: (element: ActiveElement) => void;
-};
-
-export type ShapesMenuProps = {
-  item: {
-    name: string;
-    icon: string;
-    value: Array<ActiveElement>;
-  };
-  activeElement: any;
-  handleActiveElement: any;
-  handleImageUpload: any;
-  imageInputRef: any;
 };
 
 export type CanvasMouseDown = {
