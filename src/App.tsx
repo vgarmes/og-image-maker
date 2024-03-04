@@ -3,14 +3,22 @@ import { fabric } from 'fabric';
 import {
   handleCanvasMouseDown,
   handleCanvasMouseUp,
+  handleCanvasObjectModified,
+  handleCanvasObjectMoving,
+  handleCanvasObjectScaling,
+  handleCanvasSelectionCreated,
+  handleCanvasZoom,
   handleCanvaseMouseMove,
+  handlePathCreated,
   handleResize,
   initializeFabric,
 } from './lib/canvas';
 import LeftSidebar from './components/leftsidebar';
 
 import Navbar from './components/navbar';
-import { ButtonValue } from './types/type';
+import { Attributes, ButtonValue } from './types/type';
+import { handleKeyDown } from './lib/key-events';
+import { DEFAULT_NAV_BUTTON } from './constants';
 
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -20,7 +28,18 @@ function App() {
   const selectedShapeRef = useRef<string | null>(null);
   const activeObjectRef = useRef<fabric.Object | null>(null);
   const isEditingRef = useRef(false);
-  const [activeButton, setActiveButton] = useState<ButtonValue | null>(null);
+  const [activeButton, setActiveButton] = useState<ButtonValue | null>(
+    DEFAULT_NAV_BUTTON
+  );
+  const [elementAttributes, setElementAttributes] = useState<Attributes>({
+    width: '',
+    height: '',
+    fontSize: '',
+    fontFamily: '',
+    fontWeight: '',
+    fill: '#aabbcc',
+    stroke: '#aabbcc',
+  });
 
   const handleActiveButton = (button: ButtonValue) => {
     if (button === 'reset') {
@@ -80,10 +99,98 @@ function App() {
       });
     });
 
+    canvas.on('path:created', (options) => {
+      handlePathCreated({
+        options,
+        syncShapeInStorage: () => null,
+      });
+    });
+
+    canvas.on('object:modified', (options) => {
+      handleCanvasObjectModified({
+        options,
+        syncShapeInStorage: () => null,
+      });
+    });
+
+    canvas?.on('object:moving', (options) => {
+      handleCanvasObjectMoving({
+        options,
+      });
+    });
+
+    /**
+     * listen to the selection created event on the canvas which is fired
+     * when the user selects an object on the canvas.
+     *
+     * Event inspector: http://fabricjs.com/events
+     * Event list: http://fabricjs.com/docs/fabric.Canvas.html#fire
+     */
+    canvas.on('selection:created', (options) => {
+      handleCanvasSelectionCreated({
+        options,
+        isEditingRef,
+        setElementAttributes,
+      });
+    });
+
+    canvas.on('object:scaling', (options) => {
+      handleCanvasObjectScaling({
+        options,
+        setElementAttributes,
+      });
+    });
+
+    canvas.on('mouse:wheel', (options) => {
+      handleCanvasZoom({
+        options,
+        canvas,
+      });
+    });
+
+    /**
+     * listen to the key down event on the window which is fired when the
+     * user presses a key on the keyboard.
+     *
+     * We're using this to perform some actions like delete, copy, paste, etc when the user presses the respective keys on the keyboard.
+     */
+    window.addEventListener('keydown', (e) =>
+      handleKeyDown({
+        e,
+        canvas: fabricRef.current,
+        undo,
+        redo,
+        syncShapeInStorage,
+        deleteShapeFromStorage,
+      })
+    );
+
     window.addEventListener('resize', () => {
       handleResize({ canvas: fabricRef.current });
     });
+
+    return () => {
+      canvas.dispose();
+
+      window.removeEventListener('resize', () => {
+        handleResize({
+          canvas: null,
+        });
+      });
+
+      window.removeEventListener('keydown', (e) =>
+        handleKeyDown({
+          e,
+          canvas: fabricRef.current,
+          undo,
+          redo,
+          syncShapeInStorage,
+          deleteShapeFromStorage,
+        })
+      );
+    };
   }, [canvasRef]);
+
   return (
     <main className="flex flex-col h-screen w-full overflow-hidden p-4">
       <Navbar
