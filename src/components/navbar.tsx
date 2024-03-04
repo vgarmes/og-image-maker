@@ -67,7 +67,7 @@ const navElements: MenuButton[] = [
 
 const Navbar = ({ activeButton, handleActiveButton }: Props) => {
   return (
-    <div className="flex justify-center mb-8">
+    <div className="flex justify-center mb-4">
       <div className="flex items-center justify-center gap-3 bg-zinc-800 rounded-lg p-1">
         {navElements
           .filter((element) => Boolean(element))

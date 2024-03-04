@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { fabric } from 'fabric';
 
-import { CanvasMouseDown } from '@/types/type';
+import { CanvasMouseDown, CanvasMouseMove, CanvasMouseUp } from '@/types/type';
 import { createSpecificShape } from './shapes';
+import { DEFAULT_NAV_BUTTON } from '@/constants';
 
 // initialize fabric canvas
 export const initializeFabric = ({
@@ -35,6 +36,7 @@ export const handleCanvasMouseDown = ({
   isDrawing,
   shapeRef,
 }: CanvasMouseDown) => {
+  console.log(selectedShapeRef);
   // get pointer coordinates
   const pointer = canvas.getPointer(options.e);
 
@@ -89,6 +91,96 @@ export const handleCanvasMouseDown = ({
       // add: http://fabricjs.com/docs/fabric.Canvas.html#add
       canvas.add(shapeRef.current);
     }
+  }
+};
+
+export const handleCanvaseMouseMove = ({
+  options,
+  canvas,
+  isDrawing,
+  selectedShapeRef,
+  shapeRef,
+}: CanvasMouseMove) => {
+  // if selected shape is freeform, return
+  if (!isDrawing.current) return;
+  if (selectedShapeRef.current === 'freeform') return;
+
+  canvas.isDrawingMode = false;
+
+  // get pointer coordinates
+  const pointer = canvas.getPointer(options.e);
+
+  // depending on the selected shape, set the dimensions of the shape stored in shapeRef in previous step of handelCanvasMouseDown
+  // calculate shape dimensions based on pointer coordinates
+  switch (selectedShapeRef?.current) {
+    case 'rectangle':
+      shapeRef.current?.set({
+        width: pointer.x - (shapeRef.current?.left || 0),
+        height: pointer.y - (shapeRef.current?.top || 0),
+      });
+      break;
+
+    case 'circle':
+      shapeRef.current.set({
+        radius: Math.abs(pointer.x - (shapeRef.current?.left || 0)) / 2,
+      });
+      break;
+
+    case 'triangle':
+      shapeRef.current?.set({
+        width: pointer.x - (shapeRef.current?.left || 0),
+        height: pointer.y - (shapeRef.current?.top || 0),
+      });
+      break;
+
+    case 'line':
+      shapeRef.current?.set({
+        x2: pointer.x,
+        y2: pointer.y,
+      });
+      break;
+
+    case 'image':
+      shapeRef.current?.set({
+        width: pointer.x - (shapeRef.current?.left || 0),
+        height: pointer.y - (shapeRef.current?.top || 0),
+      });
+      break;
+
+    default:
+      break;
+  }
+
+  // render objects on canvas
+  // renderAll: http://fabricjs.com/docs/fabric.Canvas.html#renderAll
+  canvas.renderAll();
+};
+
+export const handleCanvasMouseUp = ({
+  canvas,
+  isDrawing,
+  shapeRef,
+  activeObjectRef,
+  selectedShapeRef,
+  syncShapeInStorage,
+  setActiveElement,
+}: CanvasMouseUp) => {
+  isDrawing.current = false;
+  if (selectedShapeRef.current === 'freeform') return;
+
+  // sync shape in storage as drawing is stopped
+  syncShapeInStorage(shapeRef.current);
+
+  // set everything to null
+  shapeRef.current = null;
+  activeObjectRef.current = null;
+  selectedShapeRef.current = null;
+
+  // if canvas is not in drawing mode, set active element to default nav element after 700ms
+  if (!canvas.isDrawingMode) {
+    setTimeout(() => {
+      setActiveElement(DEFAULT_NAV_BUTTON);
+    }, 700);
   }
 };
 

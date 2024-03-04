@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { fabric } from 'fabric';
 import {
   handleCanvasMouseDown,
+  handleCanvasMouseUp,
+  handleCanvaseMouseMove,
   handleResize,
   initializeFabric,
 } from './lib/canvas';
@@ -16,7 +18,32 @@ function App() {
   const isDrawing = useRef(false);
   const shapeRef = useRef<fabric.Object | null>(null);
   const selectedShapeRef = useRef<string | null>(null);
+  const activeObjectRef = useRef<fabric.Object | null>(null);
+  const isEditingRef = useRef(false);
   const [activeButton, setActiveButton] = useState<ButtonValue | null>(null);
+
+  const handleActiveButton = (button: ButtonValue) => {
+    if (button === 'reset') {
+      setActiveButton(null);
+      // clear storage
+      // deleteAllShapes();
+
+      // clear canvas
+      fabricRef.current?.clear();
+      return;
+    }
+
+    setActiveButton(button);
+
+    switch (button) {
+      case 'delete':
+        // handle delete
+        break;
+      default:
+        selectedShapeRef.current = button;
+        break;
+    }
+  };
 
   useEffect(() => {
     const canvas = initializeFabric({ canvasRef, fabricRef });
@@ -31,21 +58,44 @@ function App() {
       });
     });
 
+    canvas.on('mouse:move', (options) => {
+      handleCanvaseMouseMove({
+        options,
+        canvas,
+        isDrawing,
+        selectedShapeRef,
+        shapeRef,
+      });
+    });
+
+    canvas.on('mouse:up', () => {
+      handleCanvasMouseUp({
+        canvas,
+        isDrawing,
+        shapeRef,
+        activeObjectRef,
+        selectedShapeRef,
+        syncShapeInStorage: () => null,
+        setActiveElement: setActiveButton,
+      });
+    });
+
     window.addEventListener('resize', () => {
       handleResize({ canvas: fabricRef.current });
     });
-  }, []);
+  }, [canvasRef]);
   return (
-    <main className="h-screen w-full overflow-hidden">
-      <div className="absolute w-full h-full z-10 p-4">
-        <Navbar
-          activeButton={activeButton}
-          handleActiveButton={(button) => setActiveButton(button)}
-        />
+    <main className="flex flex-col h-screen w-full overflow-hidden p-4">
+      <Navbar
+        activeButton={activeButton}
+        handleActiveButton={handleActiveButton}
+      />
+      <div className="flex flex-grow w-full gap-4">
+        <div id="canvas" className="h-full w-full border border-red-600">
+          <canvas ref={canvasRef}></canvas>
+        </div>
+
         <LeftSidebar />
-      </div>
-      <div id="canvas" className="h-full w-full flex justify-center flex-col">
-        <canvas ref={canvasRef}></canvas>
       </div>
     </main>
   );
