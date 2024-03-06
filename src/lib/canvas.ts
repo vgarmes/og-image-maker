@@ -2,6 +2,7 @@
 import { fabric } from 'fabric';
 
 import {
+  ButtonValue,
   CanvasMouseDown,
   CanvasMouseMove,
   CanvasMouseUp,
@@ -9,6 +10,7 @@ import {
   CanvasObjectScaling,
   CanvasPathCreated,
   CanvasSelectionCreated,
+  CustomFabricObject,
 } from '@/types/type';
 import { createSpecificShape } from './shapes';
 import { DEFAULT_NAV_BUTTON } from '@/constants';
@@ -37,29 +39,28 @@ export const initializeFabric = ({
   return canvas;
 };
 
+const shapes: ButtonValue[] = ['rectangle', 'circle', 'triangle', 'line'];
 // instantiate creation of custom fabric object/shape and add it to canvas
 export const handleCanvasMouseDown = ({
   options,
   canvas,
   selectedShapeRef,
   isDrawing,
+  initialCoordinates,
   shapeRef,
+  onChangeAction,
 }: CanvasMouseDown) => {
-  // get pointer coordinates
-  const pointer = canvas.getPointer(options.e);
-
-  /**
-   * get target object i.e., the object that is clicked
-   * findtarget() returns the object that is clicked
-   *
-   * findTarget: http://fabricjs.com/docs/fabric.Canvas.html#findTarget
-   */
-  const target = canvas.findTarget(options.e, false);
-
-  // set canvas drawing mode to false
-  canvas.isDrawingMode = false;
-
+  isDrawing.current = false;
   // if selected shape is freeform, set drawing mode to true and return
+  if (selectedShapeRef.current === 'select') return;
+
+  /* if (options.target) {
+    selectedShapeRef.current === 'select';
+    shapeRef.current = options.target;
+    onChangeAction('select');
+    return;
+  } */
+
   if (selectedShapeRef.current === 'freeform') {
     isDrawing.current = true;
     canvas.isDrawingMode = true;
@@ -67,38 +68,10 @@ export const handleCanvasMouseDown = ({
     return;
   }
 
-  canvas.isDrawingMode = false;
-
-  // if target is the selected shape or active selection, set isDrawing to false
-  if (
-    target &&
-    (target.type === selectedShapeRef.current ||
-      target.type === 'activeSelection')
-  ) {
-    isDrawing.current = false;
-
-    // set active object to target
-    canvas.setActiveObject(target);
-
-    /**
-     * setCoords() is used to update the controls of the object
-     * setCoords: http://fabricjs.com/docs/fabric.Object.html#setCoords
-     */
-    target.setCoords();
-  } else {
+  if (shapes.includes(selectedShapeRef.current)) {
     isDrawing.current = true;
-
-    // create custom fabric object/shape and set it to shapeRef
-    shapeRef.current = createSpecificShape(
-      selectedShapeRef.current,
-      pointer as any
-    );
-
-    // if shapeRef is not null, add it to canvas
-    if (shapeRef.current) {
-      // add: http://fabricjs.com/docs/fabric.Canvas.html#add
-      canvas.add(shapeRef.current);
-    }
+    const pointer = canvas.getPointer(options.e);
+    initialCoordinates.current = pointer;
   }
 };
 
@@ -108,18 +81,29 @@ export const handleCanvaseMouseMove = ({
   isDrawing,
   selectedShapeRef,
   shapeRef,
+  initialCoordinates,
 }: CanvasMouseMove) => {
-  // if selected shape is freeform, return
-  if (!isDrawing.current) return;
-  if (selectedShapeRef.current === 'freeform') return;
+  if (
+    !isDrawing.current ||
+    selectedShapeRef.current === 'freeform' ||
+    !initialCoordinates.current
+  )
+    return;
 
-  canvas.isDrawingMode = false;
-
-  // get pointer coordinates
   const pointer = canvas.getPointer(options.e);
 
-  // depending on the selected shape, set the dimensions of the shape stored in shapeRef in previous step of handelCanvasMouseDown
-  // calculate shape dimensions based on pointer coordinates
+  if (!shapeRef.current) {
+    shapeRef.current = createSpecificShape(
+      selectedShapeRef.current,
+      pointer,
+      initialCoordinates.current
+    );
+
+    canvas.add(shapeRef.current);
+
+    return;
+  }
+
   switch (selectedShapeRef?.current) {
     case 'rectangle':
       shapeRef.current?.set({
@@ -172,8 +156,12 @@ export const handleCanvasMouseUp = ({
   selectedShapeRef,
   syncShapeInStorage,
   setActiveElement,
+  initialCoordinates,
 }: CanvasMouseUp) => {
   isDrawing.current = false;
+
+  initialCoordinates.current = null;
+
   if (selectedShapeRef.current === 'freeform') return;
 
   // sync shape in storage as drawing is stopped
@@ -186,9 +174,7 @@ export const handleCanvasMouseUp = ({
 
   // if canvas is not in drawing mode, set active element to default nav element after 700ms
   if (!canvas.isDrawingMode) {
-    setTimeout(() => {
-      setActiveElement(DEFAULT_NAV_BUTTON);
-    }, 700);
+    setActiveElement(DEFAULT_NAV_BUTTON);
   }
 };
 

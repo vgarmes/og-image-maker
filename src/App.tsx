@@ -21,12 +21,14 @@ import { handleKeyDown } from './lib/key-events';
 import { DEFAULT_NAV_BUTTON } from './constants';
 
 function App() {
+  const canvasObj = useRef<fabric.Canvas | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricRef = useRef<fabric.Canvas | null>(null);
   const isDrawing = useRef(false);
   const shapeRef = useRef<fabric.Object | null>(null);
   const selectedShapeRef = useRef<string | null>(null);
   const activeObjectRef = useRef<fabric.Object | null>(null);
+  const initialCoordinates = useRef<PointerCoords | null>(null);
   const isEditingRef = useRef(false);
   const [activeButton, setActiveButton] = useState<ButtonValue | null>(
     DEFAULT_NAV_BUTTON
@@ -42,6 +44,7 @@ function App() {
   });
 
   const handleActiveButton = (button: ButtonValue) => {
+    if (!canvasObj.current) return;
     if (button === 'reset') {
       setActiveButton(null);
       // clear storage
@@ -54,6 +57,12 @@ function App() {
 
     setActiveButton(button);
 
+    if (button !== 'select') {
+      canvasObj.current.forEachObject((obj) => obj.set('selectable', false));
+      canvasObj.current.discardActiveObject().renderAll();
+    } else {
+      canvasObj.current.forEachObject((obj) => obj.set('selectable', true));
+    }
     switch (button) {
       case 'delete':
         // handle delete
@@ -65,7 +74,8 @@ function App() {
   };
 
   useEffect(() => {
-    const canvas = initializeFabric({ canvasRef, fabricRef });
+    canvasObj.current = initializeFabric({ canvasRef, fabricRef });
+    const canvas = canvasObj.current;
 
     canvas.on('mouse:down', (options) => {
       handleCanvasMouseDown({
@@ -73,7 +83,9 @@ function App() {
         canvas,
         selectedShapeRef,
         isDrawing,
+        initialCoordinates,
         shapeRef,
+        onChangeAction: handleActiveButton,
       });
     });
 
@@ -84,6 +96,7 @@ function App() {
         isDrawing,
         selectedShapeRef,
         shapeRef,
+        initialCoordinates,
       });
     });
 
@@ -95,7 +108,8 @@ function App() {
         activeObjectRef,
         selectedShapeRef,
         syncShapeInStorage: () => null,
-        setActiveElement: setActiveButton,
+        setActiveElement: handleActiveButton,
+        initialCoordinates,
       });
     });
 
@@ -154,16 +168,18 @@ function App() {
      *
      * We're using this to perform some actions like delete, copy, paste, etc when the user presses the respective keys on the keyboard.
      */
-    window.addEventListener('keydown', (e) =>
+
+    const handleKeyboardEvent = (e: KeyboardEvent) =>
       handleKeyDown({
         e,
         canvas: fabricRef.current,
-        undo,
-        redo,
-        syncShapeInStorage,
-        deleteShapeFromStorage,
-      })
-    );
+        undo: () => null,
+        redo: () => null,
+        syncShapeInStorage: () => null,
+        deleteShapeFromStorage: () => null,
+        shapeRef,
+      });
+    window.addEventListener('keydown', handleKeyboardEvent);
 
     window.addEventListener('resize', () => {
       handleResize({ canvas: fabricRef.current });
@@ -178,16 +194,7 @@ function App() {
         });
       });
 
-      window.removeEventListener('keydown', (e) =>
-        handleKeyDown({
-          e,
-          canvas: fabricRef.current,
-          undo,
-          redo,
-          syncShapeInStorage,
-          deleteShapeFromStorage,
-        })
-      );
+      window.removeEventListener('keydown', handleKeyboardEvent);
     };
   }, [canvasRef]);
 

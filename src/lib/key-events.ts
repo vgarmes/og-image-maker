@@ -85,14 +85,17 @@ export const handleKeyDown = ({
   redo,
   syncShapeInStorage,
   deleteShapeFromStorage,
+  shapeRef,
 }: {
   e: KeyboardEvent;
-  canvas: fabric.Canvas;
+  canvas: fabric.Canvas | null;
   undo: () => void;
   redo: () => void;
   syncShapeInStorage: (shape: fabric.Object) => void;
   deleteShapeFromStorage: (id: string) => void;
+  shapeRef: React.MutableRefObject<fabric.Object | null>;
 }) => {
+  if (!canvas) return;
   // Check if the key pressed is ctrl/cmd + c (copy)
   if ((e?.ctrlKey || e?.metaKey) && e.keyCode === 67) {
     handleCopy(canvas);
@@ -104,9 +107,13 @@ export const handleKeyDown = ({
   }
 
   // Check if the key pressed is delete/backspace (delete)
-  // if (e.keyCode === 8 || e.keyCode === 46) {
-  //   handleDelete(canvas, deleteShapeFromStorage);
-  // }
+  if (e.code === 'Backspace' || e.code === 'Delete') {
+    // handleDelete(canvas, deleteShapeFromStorage);
+    if (shapeRef.current) {
+      canvas.remove(shapeRef.current);
+      shapeRef.current = null;
+    }
+  }
 
   // check if the key pressed is ctrl/cmd + x (cut)
   if ((e?.ctrlKey || e?.metaKey) && e.keyCode === 88) {

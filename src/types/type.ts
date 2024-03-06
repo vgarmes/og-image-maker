@@ -58,6 +58,8 @@ export type Attributes = {
   stroke: string;
 };
 
+export type PointerCoords = { x: number; y: number };
+
 const BUTTON_VALUES = [
   'rectangle',
   'circle',
@@ -123,7 +125,9 @@ export type CanvasMouseDown = {
   canvas: fabric.Canvas;
   selectedShapeRef: any;
   isDrawing: React.MutableRefObject<boolean>;
-  shapeRef: React.MutableRefObject<fabric.Object | null>;
+  initialCoordinates: React.MutableRefObject<PointerCoords>;
+  shapeRef: any;
+  onChangeAction: (action: ButtonValue) => void;
 };
 
 export type CanvasMouseMove = {
@@ -132,6 +136,7 @@ export type CanvasMouseMove = {
   isDrawing: React.MutableRefObject<boolean>;
   selectedShapeRef: any;
   shapeRef: any;
+  initialCoordinates: React.MutableRefObject<PointerCoords>;
 };
 
 export type CanvasMouseUp = {
@@ -142,6 +147,7 @@ export type CanvasMouseUp = {
   selectedShapeRef: any;
   syncShapeInStorage: (shape: fabric.Object) => void;
   setActiveElement: any;
+  initialCoordinates: React.MutableRefObject<PointerCoords | null>;
 };
 
 export type CanvasObjectModified = {

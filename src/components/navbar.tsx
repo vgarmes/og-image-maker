@@ -71,11 +71,12 @@ const Navbar = ({ activeButton, handleActiveButton }: Props) => {
       <div className="flex items-center justify-center gap-3 bg-zinc-800 rounded-lg p-1">
         {navElements
           .filter((element) => Boolean(element))
-          .map(({ value, icon }) => {
+          .map(({ name, value, icon }) => {
             const isActive = activeButton && activeButton === value;
 
             return (
               <button
+                key={name}
                 className={clsx(
                   'text-primary rounded-lg size-9 inline-flex items-center justify-center *:size-4',
                   {
