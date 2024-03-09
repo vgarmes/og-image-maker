@@ -2,6 +2,7 @@
 import { fabric } from 'fabric';
 
 import {
+  CanvasAction,
   CanvasMouseDown,
   CanvasMouseMove,
   CanvasMouseUp,
@@ -70,7 +71,6 @@ export const handleCanvasMouseDown = ({
     isDrawing.current = true;
     const pointer = canvas.getPointer(options.e);
     initialCoordinates.current = pointer;
-    console.log(pointer);
   }
 };
 
@@ -349,4 +349,20 @@ export const handleResize = ({ canvas }: { canvas: fabric.Canvas | null }) => {
     width: canvasElement.clientWidth,
     height: canvasElement.clientHeight,
   });
+};
+
+export const handleCursorMode = (
+  canvas: fabric.Canvas,
+  action: CanvasAction
+) => {
+  if (DRAWING_ELEMENTS.includes(action)) {
+    canvas.forEachObject((obj) => obj.set('selectable', false));
+    canvas.defaultCursor = 'crosshair';
+    canvas.hoverCursor = 'crosshair';
+    canvas.discardActiveObject().renderAll();
+  } else {
+    canvas.defaultCursor = 'default';
+    canvas.hoverCursor = 'move';
+    canvas.forEachObject((obj) => obj.set('selectable', true));
+  }
 };

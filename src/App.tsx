@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { fabric } from 'fabric';
-import { clsx } from 'clsx';
 import {
   handleCanvasMouseDown,
   handleCanvasMouseUp,
@@ -10,6 +9,7 @@ import {
   handleCanvasSelectionCreated,
   handleCanvasZoom,
   handleCanvaseMouseMove,
+  handleCursorMode,
   handlePathCreated,
   handleResize,
   initializeFabric,
@@ -17,12 +17,7 @@ import {
 import LeftSidebar from './components/leftsidebar';
 
 import Navbar from './components/navbar';
-import {
-  Attributes,
-  CanvasAction,
-  Coordinates,
-  DRAWING_ELEMENTS,
-} from './types/type';
+import { Attributes, CanvasAction, Coordinates } from './types/type';
 import { handleKeyDown } from './lib/key-events';
 import { DEFAULT_NAV_BUTTON } from './constants';
 
@@ -63,19 +58,8 @@ function App() {
 
     setActiveAction(action);
 
-    if (DRAWING_ELEMENTS.includes(action)) {
-      canvasObj.current.forEachObject((obj) => {
-        obj.set('selectable', false);
-      });
-      canvasObj.current.defaultCursor = 'crosshair';
-      canvasObj.current.hoverCursor = 'crosshair';
-      canvasObj.current.discardActiveObject().renderAll();
-    } else {
-      canvasObj.current.defaultCursor = 'default';
-      canvasObj.current.hoverCursor = 'move';
-
-      canvasObj.current.forEachObject((obj) => obj.set('selectable', true));
-    }
+    // handle mouse style
+    handleCursorMode(canvasObj.current, action);
 
     switch (action) {
       case 'delete':

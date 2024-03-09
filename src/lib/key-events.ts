@@ -58,20 +58,14 @@ export const handlePaste = (
   }
 };
 
-export const handleDelete = (
-  canvas: fabric.Canvas,
-  deleteShapeFromStorage: (id: string) => void
-) => {
+export const handleDelete = (canvas: fabric.Canvas) => {
   const activeObjects = canvas.getActiveObjects();
   if (!activeObjects || activeObjects.length === 0) return;
 
-  if (activeObjects.length > 0) {
-    activeObjects.forEach((obj: CustomFabricObject<any>) => {
-      if (!obj.objectId) return;
-      canvas.remove(obj);
-      deleteShapeFromStorage(obj.objectId);
-    });
-  }
+  activeObjects.forEach((obj) => {
+    canvas.remove(obj);
+    //deleteShapeFromStorage(obj.objectId);
+  });
 
   canvas.discardActiveObject();
   canvas.requestRenderAll();
@@ -108,17 +102,13 @@ export const handleKeyDown = ({
 
   // Check if the key pressed is delete/backspace (delete)
   if (e.code === 'Backspace' || e.code === 'Delete') {
-    // handleDelete(canvas, deleteShapeFromStorage);
-    if (shapeRef.current) {
-      canvas.remove(shapeRef.current);
-      shapeRef.current = null;
-    }
+    handleDelete(canvas);
   }
 
   // check if the key pressed is ctrl/cmd + x (cut)
   if ((e?.ctrlKey || e?.metaKey) && e.keyCode === 88) {
     handleCopy(canvas);
-    handleDelete(canvas, deleteShapeFromStorage);
+    handleDelete(canvas);
   }
 
   // check if the key pressed is ctrl/cmd + z (undo)
