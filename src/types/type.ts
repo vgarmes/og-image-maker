@@ -58,33 +58,36 @@ export type Attributes = {
   stroke: string;
 };
 
-export type PointerCoords = { x: number; y: number };
+export type Coordinates = { x: number; y: number };
 
-const BUTTON_VALUES = [
+const CANVAS_ACTIONS = [
+  'select',
   'rectangle',
   'circle',
   'triangle',
   'line',
   'freeform',
-  'select',
-  'delete',
   'text',
+  'delete',
   'reset',
 ] as const;
 
-export type ButtonValue = (typeof BUTTON_VALUES)[number] | null;
+export const DRAWING_ELEMENTS: CanvasAction[] = [
+  'rectangle',
+  'circle',
+  'triangle',
+  'line',
+  'freeform',
+  'text',
+] as const;
+
+export type CanvasAction = (typeof CANVAS_ACTIONS)[number] | null;
 
 export type MenuButton = {
   name: string;
-  value: ButtonValue | null;
+  value: CanvasAction | null;
   icon: React.ReactNode;
 };
-
-/* export type ActiveElement = {
-  name: string;
-  value: string;
-  icon: string;
-} | null; */
 
 export interface CustomFabricObject extends fabric.Object {
   objectId?: string;
@@ -125,9 +128,9 @@ export type CanvasMouseDown = {
   canvas: fabric.Canvas;
   selectedShapeRef: any;
   isDrawing: React.MutableRefObject<boolean>;
-  initialCoordinates: React.MutableRefObject<PointerCoords>;
+  initialCoordinates: React.MutableRefObject<Coordinates | null>;
   shapeRef: any;
-  onChangeAction: (action: ButtonValue) => void;
+  onChangeAction: (action: CanvasAction) => void;
 };
 
 export type CanvasMouseMove = {
@@ -136,7 +139,7 @@ export type CanvasMouseMove = {
   isDrawing: React.MutableRefObject<boolean>;
   selectedShapeRef: any;
   shapeRef: any;
-  initialCoordinates: React.MutableRefObject<PointerCoords>;
+  initialCoordinates: React.MutableRefObject<Coordinates | null>;
 };
 
 export type CanvasMouseUp = {
@@ -147,7 +150,7 @@ export type CanvasMouseUp = {
   selectedShapeRef: any;
   syncShapeInStorage: (shape: fabric.Object) => void;
   setActiveElement: any;
-  initialCoordinates: React.MutableRefObject<PointerCoords | null>;
+  initialCoordinates: React.MutableRefObject<Coordinates | null>;
 };
 
 export type CanvasObjectModified = {

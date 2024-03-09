@@ -1,3 +1,3 @@
-import { ButtonValue } from '@/types/type';
+import { CanvasAction } from '@/types/type';
 
-export const DEFAULT_NAV_BUTTON: ButtonValue = 'select';
+export const DEFAULT_NAV_BUTTON: CanvasAction = 'select';

@@ -2,7 +2,6 @@
 import { fabric } from 'fabric';
 
 import {
-  ButtonValue,
   CanvasMouseDown,
   CanvasMouseMove,
   CanvasMouseUp,
@@ -10,7 +9,7 @@ import {
   CanvasObjectScaling,
   CanvasPathCreated,
   CanvasSelectionCreated,
-  CustomFabricObject,
+  DRAWING_ELEMENTS,
 } from '@/types/type';
 import { createSpecificShape } from './shapes';
 import { DEFAULT_NAV_BUTTON } from '@/constants';
@@ -39,7 +38,6 @@ export const initializeFabric = ({
   return canvas;
 };
 
-const shapes: ButtonValue[] = ['rectangle', 'circle', 'triangle', 'line'];
 // instantiate creation of custom fabric object/shape and add it to canvas
 export const handleCanvasMouseDown = ({
   options,
@@ -68,10 +66,11 @@ export const handleCanvasMouseDown = ({
     return;
   }
 
-  if (shapes.includes(selectedShapeRef.current)) {
+  if (DRAWING_ELEMENTS.includes(selectedShapeRef.current)) {
     isDrawing.current = true;
     const pointer = canvas.getPointer(options.e);
     initialCoordinates.current = pointer;
+    console.log(pointer);
   }
 };
 

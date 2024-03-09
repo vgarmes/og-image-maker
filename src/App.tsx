@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { fabric } from 'fabric';
+import { clsx } from 'clsx';
 import {
   handleCanvasMouseDown,
   handleCanvasMouseUp,
@@ -16,7 +17,12 @@ import {
 import LeftSidebar from './components/leftsidebar';
 
 import Navbar from './components/navbar';
-import { Attributes, ButtonValue } from './types/type';
+import {
+  Attributes,
+  CanvasAction,
+  Coordinates,
+  DRAWING_ELEMENTS,
+} from './types/type';
 import { handleKeyDown } from './lib/key-events';
 import { DEFAULT_NAV_BUTTON } from './constants';
 
@@ -28,9 +34,9 @@ function App() {
   const shapeRef = useRef<fabric.Object | null>(null);
   const selectedShapeRef = useRef<string | null>(null);
   const activeObjectRef = useRef<fabric.Object | null>(null);
-  const initialCoordinates = useRef<PointerCoords | null>(null);
+  const initialCoordinates = useRef<Coordinates | null>(null);
   const isEditingRef = useRef(false);
-  const [activeButton, setActiveButton] = useState<ButtonValue | null>(
+  const [activeAction, setActiveAction] = useState<CanvasAction | null>(
     DEFAULT_NAV_BUTTON
   );
   const [elementAttributes, setElementAttributes] = useState<Attributes>({
@@ -43,40 +49,48 @@ function App() {
     stroke: '#aabbcc',
   });
 
-  const handleActiveButton = (button: ButtonValue) => {
+  const handleActiveAction = (action: CanvasAction) => {
     if (!canvasObj.current) return;
-    if (button === 'reset') {
-      setActiveButton(null);
+    if (action === 'reset') {
       // clear storage
       // deleteAllShapes();
 
       // clear canvas
       fabricRef.current?.clear();
+      setActiveAction(DEFAULT_NAV_BUTTON);
       return;
     }
 
-    setActiveButton(button);
+    setActiveAction(action);
 
-    if (button !== 'select') {
-      canvasObj.current.forEachObject((obj) => obj.set('selectable', false));
+    if (DRAWING_ELEMENTS.includes(action)) {
+      canvasObj.current.forEachObject((obj) => {
+        obj.set('selectable', false);
+      });
+      canvasObj.current.defaultCursor = 'crosshair';
+      canvasObj.current.hoverCursor = 'crosshair';
       canvasObj.current.discardActiveObject().renderAll();
     } else {
+      canvasObj.current.defaultCursor = 'default';
+      canvasObj.current.hoverCursor = 'move';
+
       canvasObj.current.forEachObject((obj) => obj.set('selectable', true));
     }
-    switch (button) {
+
+    switch (action) {
       case 'delete':
         // handle delete
         break;
       default:
-        selectedShapeRef.current = button;
+        selectedShapeRef.current = action;
         break;
     }
   };
 
   useEffect(() => {
     canvasObj.current = initializeFabric({ canvasRef, fabricRef });
-    const canvas = canvasObj.current;
 
+    const canvas = canvasObj.current;
     canvas.on('mouse:down', (options) => {
       handleCanvasMouseDown({
         options,
@@ -85,7 +99,7 @@ function App() {
         isDrawing,
         initialCoordinates,
         shapeRef,
-        onChangeAction: handleActiveButton,
+        onChangeAction: handleActiveAction,
       });
     });
 
@@ -108,7 +122,7 @@ function App() {
         activeObjectRef,
         selectedShapeRef,
         syncShapeInStorage: () => null,
-        setActiveElement: handleActiveButton,
+        setActiveElement: handleActiveAction,
         initialCoordinates,
       });
     });
@@ -201,8 +215,8 @@ function App() {
   return (
     <main className="flex flex-col h-screen w-full overflow-hidden p-4">
       <Navbar
-        activeButton={activeButton}
-        handleActiveButton={handleActiveButton}
+        activeButton={activeAction}
+        handleActiveButton={handleActiveAction}
       />
       <div className="flex flex-grow w-full gap-4">
         <div id="canvas" className="h-full w-full border border-red-600">

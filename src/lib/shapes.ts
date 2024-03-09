@@ -1,10 +1,10 @@
-import { CustomFabricObject, PointerCoords } from '@/types/type';
+import { CustomFabricObject, Coordinates } from '@/types/type';
 import { fabric } from 'fabric';
 import { v4 as uuid } from 'uuid';
 
 export const createRectangle = (
-  pointerCoords: PointerCoords,
-  initialCoords: PointerCoords
+  pointerCoords: Coordinates,
+  initialCoords: Coordinates
 ) => {
   const rect = new fabric.Rect({
     left: initialCoords.x,
@@ -19,8 +19,8 @@ export const createRectangle = (
 };
 
 export const createTriangle = (
-  pointer: PointerCoords,
-  initialCoordinates: PointerCoords
+  pointer: Coordinates,
+  initialCoordinates: Coordinates
 ) => {
   return new fabric.Triangle({
     left: initialCoordinates.x,
@@ -33,8 +33,8 @@ export const createTriangle = (
 };
 
 export const createLine = (
-  pointer: PointerCoords,
-  startingPoint: PointerCoords
+  pointer: Coordinates,
+  startingPoint: Coordinates
 ) => {
   return new fabric.Line(
     [
@@ -65,8 +65,8 @@ export const createText = (pointer: PointerEvent, text: string) => {
 
 export const createSpecificShape = (
   shapeType: string,
-  pointer: PointerCoords,
-  startingPoint: PointerCoords
+  pointer: Coordinates,
+  startingPoint: Coordinates
 ) => {
   switch (shapeType) {
     case 'rectangle':
@@ -90,8 +90,8 @@ export const createSpecificShape = (
 };
 
 export const createCircle = (
-  pointer: PointerCoords,
-  initialCoordinates: PointerCoords
+  pointer: Coordinates,
+  initialCoordinates: Coordinates
 ) => {
   return new fabric.Circle({
     left: pointer.x,

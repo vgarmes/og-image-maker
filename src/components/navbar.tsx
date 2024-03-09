@@ -9,12 +9,12 @@ import {
   Eraser,
   Undo,
 } from 'lucide-react';
-import { ButtonValue, MenuButton } from '@/types/type';
+import { CanvasAction, MenuButton } from '@/types/type';
 import { clsx } from 'clsx';
 
 interface Props {
-  activeButton: ButtonValue;
-  handleActiveButton: (button: ButtonValue) => void;
+  activeButton: CanvasAction;
+  handleActiveButton: (button: CanvasAction) => void;
 }
 
 const navElements: MenuButton[] = [
