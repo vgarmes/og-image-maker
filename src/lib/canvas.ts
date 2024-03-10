@@ -10,9 +10,9 @@ import {
   CanvasObjectScaling,
   CanvasPathCreated,
   CanvasSelectionCreated,
-  DRAWING_ELEMENTS,
+  SHAPES,
 } from '@/types/type';
-import { createSpecificShape } from './shapes';
+import { createSpecificShape, createText } from './shapes';
 import { DEFAULT_NAV_BUTTON } from '@/constants';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -60,6 +60,13 @@ export const handleCanvasMouseDown = ({
     return;
   } */
 
+  if (selectedShapeRef.current === 'text' && options.pointer) {
+    shapeRef.current = createText(options.pointer, 'Tap to edit');
+
+    canvas.add(shapeRef.current);
+    canvas.renderAll();
+  }
+
   if (selectedShapeRef.current === 'freeform') {
     isDrawing.current = true;
     canvas.isDrawingMode = true;
@@ -67,7 +74,7 @@ export const handleCanvasMouseDown = ({
     return;
   }
 
-  if (DRAWING_ELEMENTS.includes(selectedShapeRef.current)) {
+  if (SHAPES.includes(selectedShapeRef.current)) {
     isDrawing.current = true;
     const pointer = canvas.getPointer(options.e);
     initialCoordinates.current = pointer;
@@ -351,11 +358,13 @@ export const handleResize = ({ canvas }: { canvas: fabric.Canvas | null }) => {
   });
 };
 
+const shapesWithCrosshair: CanvasAction[] = [...SHAPES, 'text'];
+
 export const handleCursorMode = (
   canvas: fabric.Canvas,
   action: CanvasAction
 ) => {
-  if (DRAWING_ELEMENTS.includes(action)) {
+  if (shapesWithCrosshair.includes(action)) {
     canvas.forEachObject((obj) => obj.set('selectable', false));
     canvas.defaultCursor = 'crosshair';
     canvas.hoverCursor = 'crosshair';

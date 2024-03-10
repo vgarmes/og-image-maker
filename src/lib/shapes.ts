@@ -51,10 +51,10 @@ export const createLine = (
   );
 };
 
-export const createText = (pointer: PointerEvent, text: string) => {
+export const createText = (coordinates: Coordinates, text: string) => {
   return new fabric.IText(text, {
-    left: pointer.x,
-    top: pointer.y,
+    left: coordinates.x,
+    top: coordinates.y,
     fill: '#aabbcc',
     fontFamily: 'Helvetica',
     fontSize: 36,
@@ -80,9 +80,6 @@ export const createSpecificShape = (
 
     case 'line':
       return createLine(pointer, startingPoint);
-
-    case 'text':
-      return createText(pointer, 'Tap to Type');
 
     default:
       return null;

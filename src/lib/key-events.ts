@@ -58,16 +58,25 @@ export const handlePaste = (
   }
 };
 
-export const handleDelete = (canvas: fabric.Canvas) => {
-  const activeObjects = canvas.getActiveObjects();
-  if (!activeObjects || activeObjects.length === 0) return;
+interface ActiveObject extends fabric.Object {
+  selected?: boolean;
+  text?: string;
+}
+const isDeletingText = (obj: ActiveObject) =>
+  obj.text && obj.selected === false;
 
-  activeObjects.forEach((obj) => {
+export const handleDelete = (canvas: fabric.Canvas) => {
+  const activeObjects = canvas.getActiveObjects(); // for some reason this also includes a text object that is being edited
+  const selectedObjects = activeObjects.filter((obj) => !isDeletingText(obj));
+
+  if (!selectedObjects || selectedObjects.length === 0) return;
+
+  selectedObjects.forEach((obj) => {
     canvas.remove(obj);
     //deleteShapeFromStorage(obj.objectId);
   });
 
-  canvas.discardActiveObject();
+  canvas.discardActiveObject(); // otherwise selectors still show on screen
   canvas.requestRenderAll();
 };
 

@@ -72,13 +72,11 @@ const CANVAS_ACTIONS = [
   'reset',
 ] as const;
 
-export const DRAWING_ELEMENTS: CanvasAction[] = [
+export const SHAPES: CanvasAction[] = [
   'rectangle',
   'circle',
   'triangle',
   'line',
-  'freeform',
-  'text',
 ] as const;
 
 export type CanvasAction = (typeof CANVAS_ACTIONS)[number] | null;
