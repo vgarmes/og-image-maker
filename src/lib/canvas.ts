@@ -13,7 +13,6 @@ import {
   SHAPES,
 } from '@/types/type';
 import { createSpecificShape, createText } from './shapes';
-import { DEFAULT_NAV_BUTTON } from '@/constants';
 import { v4 as uuidv4 } from 'uuid';
 
 // initialize fabric canvas
@@ -161,12 +160,9 @@ export const handleCanvasMouseUp = ({
   activeObjectRef,
   selectedShapeRef,
   syncShapeInStorage,
-  onFinishDrawing,
+  onMouseUp,
   initialCoordinates,
 }: CanvasMouseUp) => {
-  if (!isDrawing.current) {
-    return;
-  }
   isDrawing.current = false;
 
   initialCoordinates.current = null;
@@ -179,8 +175,7 @@ export const handleCanvasMouseUp = ({
   // set everything to null
 
   if (!canvas.isDrawingMode) {
-    console.log('finish drawing');
-    onFinishDrawing(shapeRef.current);
+    onMouseUp(shapeRef.current);
     //setActiveElement(DEFAULT_NAV_BUTTON);
   }
   shapeRef.current = null;
@@ -362,28 +357,24 @@ export const handleResize = ({ canvas }: { canvas: fabric.Canvas | null }) => {
   });
 };
 
-const shapesWithCrosshair: CanvasAction[] = [...SHAPES, 'text'];
+export const disableCanvasSelections = (canvas: fabric.Canvas) => {
+  canvas.forEachObject((obj) => obj.set('selectable', false));
+  canvas.defaultCursor = 'crosshair';
+  canvas.hoverCursor = 'crosshair';
+  canvas.selection = false; // removes blue highlight box
+  canvas.discardActiveObject().renderAll();
+};
 
-export const handleCursorMode = (
+export const enableCanvasSelections = (
   canvas: fabric.Canvas,
-  action: CanvasAction
+  activeObject?: fabric.Object
 ) => {
-  if (shapesWithCrosshair.includes(action)) {
-    console.log('make none selectable');
-    canvas.forEachObject((obj) => obj.set('selectable', false));
-    canvas.defaultCursor = 'crosshair';
-    canvas.hoverCursor = 'crosshair';
-    //canvas.selection = false; // removes blue highlight box
-    canvas.discardActiveObject().renderAll();
-  } else {
-    console.log('make all selectable');
-    canvas.defaultCursor = 'default';
-    canvas.hoverCursor = 'move';
-    //canvas.selection = true;
-    canvas.forEachObject((obj) => {
-      console.log(obj);
-      obj.set('selectable', true);
-    });
-    canvas.renderAll();
+  canvas.defaultCursor = 'default';
+  canvas.hoverCursor = 'move';
+  canvas.selection = true;
+  canvas.forEachObject((obj) => obj.set('selectable', true));
+  if (activeObject) {
+    canvas.setActiveObject(activeObject);
   }
+  canvas.renderAll();
 };

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { fabric } from 'fabric';
 import {
+  disableCanvasSelections,
+  enableCanvasSelections,
   handleCanvasMouseDown,
   handleCanvasMouseUp,
   handleCanvasObjectModified,
@@ -9,7 +11,6 @@ import {
   handleCanvasSelectionCreated,
   handleCanvasZoom,
   handleCanvaseMouseMove,
-  handleCursorMode,
   handlePathCreated,
   handleResize,
   initializeFabric,
@@ -17,7 +18,7 @@ import {
 import LeftSidebar from './components/leftsidebar';
 
 import Navbar from './components/navbar';
-import { Attributes, CanvasAction, Coordinates } from './types/type';
+import { Attributes, CanvasAction, Coordinates, SHAPES } from './types/type';
 import { handleKeyDown } from './lib/key-events';
 import { DEFAULT_NAV_BUTTON } from './constants';
 
@@ -44,7 +45,10 @@ function App() {
     stroke: '#aabbcc',
   });
 
-  const handleActiveAction = (action: CanvasAction) => {
+  const handleActiveAction = (
+    action: CanvasAction,
+    activeObject?: fabric.Object
+  ) => {
     if (!canvasObj.current) return;
     if (action === 'reset') {
       // clear storage
@@ -59,7 +63,11 @@ function App() {
     setActiveAction(action);
 
     // handle mouse style
-    handleCursorMode(canvasObj.current, action);
+    if (SHAPES.includes(action)) {
+      disableCanvasSelections(canvasObj.current);
+    } else {
+      enableCanvasSelections(canvasObj.current, activeObject);
+    }
 
     switch (action) {
       case 'delete':
@@ -118,7 +126,7 @@ function App() {
         activeObjectRef,
         selectedShapeRef,
         syncShapeInStorage: () => null,
-        onFinishDrawing: () => handleActiveAction(DEFAULT_NAV_BUTTON),
+        onMouseUp: (activeObject) => handleActiveAction('select', activeObject),
         initialCoordinates,
       });
     });
