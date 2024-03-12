@@ -147,7 +147,7 @@ export type CanvasMouseUp = {
   activeObjectRef: React.MutableRefObject<fabric.Object | null>;
   selectedShapeRef: any;
   syncShapeInStorage: (shape: fabric.Object) => void;
-  setActiveElement: any;
+  onFinishDrawing: (shape: fabric.Object) => void;
   initialCoordinates: React.MutableRefObject<Coordinates | null>;
 };
 

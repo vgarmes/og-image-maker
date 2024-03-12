@@ -161,9 +161,12 @@ export const handleCanvasMouseUp = ({
   activeObjectRef,
   selectedShapeRef,
   syncShapeInStorage,
-  setActiveElement,
+  onFinishDrawing,
   initialCoordinates,
 }: CanvasMouseUp) => {
+  if (!isDrawing.current) {
+    return;
+  }
   isDrawing.current = false;
 
   initialCoordinates.current = null;
@@ -174,14 +177,15 @@ export const handleCanvasMouseUp = ({
   syncShapeInStorage(shapeRef.current);
 
   // set everything to null
+
+  if (!canvas.isDrawingMode) {
+    console.log('finish drawing');
+    onFinishDrawing(shapeRef.current);
+    //setActiveElement(DEFAULT_NAV_BUTTON);
+  }
   shapeRef.current = null;
   activeObjectRef.current = null;
   selectedShapeRef.current = null;
-
-  // if canvas is not in drawing mode, set active element to default nav element after 700ms
-  if (!canvas.isDrawingMode) {
-    setActiveElement(DEFAULT_NAV_BUTTON);
-  }
 };
 
 // update shape in storage when path is created when in freeform mode
@@ -351,7 +355,7 @@ export const handleResize = ({ canvas }: { canvas: fabric.Canvas | null }) => {
   if (!canvasElement) return;
 
   if (!canvas) return;
-
+  console.log(canvasElement.scrollHeight);
   canvas.setDimensions({
     width: canvasElement.clientWidth,
     height: canvasElement.clientHeight,
@@ -365,13 +369,21 @@ export const handleCursorMode = (
   action: CanvasAction
 ) => {
   if (shapesWithCrosshair.includes(action)) {
+    console.log('make none selectable');
     canvas.forEachObject((obj) => obj.set('selectable', false));
     canvas.defaultCursor = 'crosshair';
     canvas.hoverCursor = 'crosshair';
+    //canvas.selection = false; // removes blue highlight box
     canvas.discardActiveObject().renderAll();
   } else {
+    console.log('make all selectable');
     canvas.defaultCursor = 'default';
     canvas.hoverCursor = 'move';
-    canvas.forEachObject((obj) => obj.set('selectable', true));
+    //canvas.selection = true;
+    canvas.forEachObject((obj) => {
+      console.log(obj);
+      obj.set('selectable', true);
+    });
+    canvas.renderAll();
   }
 };

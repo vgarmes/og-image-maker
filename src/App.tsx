@@ -75,6 +75,18 @@ function App() {
     canvasObj.current = initializeFabric({ canvasRef, fabricRef });
 
     const canvas = canvasObj.current;
+    const gradient = new fabric.Gradient({
+      type: 'linear',
+      gradientUnits: 'pixels', // or 'percentage'
+      coords: { x1: 0, y1: 0, x2: 0, y2: canvas.height },
+      colorStops: [
+        { offset: 0, color: 'rgb(99 102 241)' },
+        { offset: 0.5, color: 'rgb(168 85 247)' },
+        { offset: 1, color: 'rgb(236 72 153)' },
+      ],
+    });
+    canvas.setBackgroundColor(gradient, canvas.renderAll.bind(canvas));
+
     canvas.on('mouse:down', (options) => {
       handleCanvasMouseDown({
         options,
@@ -106,7 +118,7 @@ function App() {
         activeObjectRef,
         selectedShapeRef,
         syncShapeInStorage: () => null,
-        setActiveElement: handleActiveAction,
+        onFinishDrawing: () => handleActiveAction(DEFAULT_NAV_BUTTON),
         initialCoordinates,
       });
     });
@@ -180,6 +192,7 @@ function App() {
     window.addEventListener('keydown', handleKeyboardEvent);
 
     window.addEventListener('resize', () => {
+      console.log('resizing');
       handleResize({ canvas: fabricRef.current });
     });
 
@@ -194,16 +207,20 @@ function App() {
 
       window.removeEventListener('keydown', handleKeyboardEvent);
     };
-  }, [canvasRef]);
+  }, []);
 
   return (
-    <main className="flex flex-col h-screen w-full overflow-hidden p-4">
+    <main className="flex flex-col h-screen w-full p-4">
       <Navbar
         activeButton={activeAction}
         handleActiveButton={handleActiveAction}
       />
       <div className="flex flex-grow w-full gap-4">
-        <div id="canvas" className="h-full w-full border border-red-600">
+        <div
+          id="canvas"
+          className="border border-red-600 rounded overflow-hidden self-start flex-grow max-w-[1200px]"
+          style={{ aspectRatio: '1.91 / 1' }}
+        >
           <canvas ref={canvasRef}></canvas>
         </div>
 
